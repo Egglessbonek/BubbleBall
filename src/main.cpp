@@ -14,6 +14,8 @@ struct Circle {
 
     float dx;
     float dy;
+
+    Color color{GRAY};
 };
 
 struct Pad {
@@ -104,6 +106,17 @@ int main() {
         .y = 120.f,
         .dx = -0.4f,
         .dy = 0.f,
+        .color = WHITE,
+    };
+
+    Circle blue{
+        .radius = 15.f,
+        .mass = 0.5625f,
+        .x = 300.f,
+        .y = 50.f,
+        .dx = 0.2f,
+        .dy = 0.f,
+        .color = BLUE,
     };
 
     Pad yellowPad{
@@ -113,7 +126,7 @@ int main() {
         .boost = 0.9f,
     };
 
-    std::vector<Circle> circles{grey, white};
+    std::vector<Circle> circles{grey, white, blue};
 
     float dampening = 0.98f;
 
@@ -141,16 +154,23 @@ int main() {
             }
         };
 
-        UpdateCircle(grey);
-        UpdateCircle(white);
-        ResolveCollision(grey, white);
-        ApplyPadBoost(grey, yellowPad, screenHeight);
-        ApplyPadBoost(white, yellowPad, screenHeight);
+        for (auto &circle : circles) {
+            UpdateCircle(circle);
+        }
+        for (size_t i = 0; i < circles.size(); ++i) {
+            for (size_t j = i + 1; j < circles.size(); ++j) {
+                ResolveCollision(circles[i], circles[j]);
+            }
+        }
+        for (auto &circle : circles) {
+            ApplyPadBoost(circle, yellowPad, screenHeight);
+        }
 
         BeginDrawing();
         ClearBackground(BLACK);
-        DrawCircle(grey.x, grey.y, grey.radius, GRAY);
-        DrawCircle(white.x, white.y, white.radius, WHITE);
+        for (const auto &circle : circles) {
+            DrawCircle(circle.x, circle.y, circle.radius, circle.color);
+        }
 
         float padCenterX = yellowPad.x + yellowPad.width * 0.5f;
         DrawEllipse(padCenterX, static_cast<float>(screenHeight), yellowPad.width * 0.5f, yellowPad.height, YELLOW);
